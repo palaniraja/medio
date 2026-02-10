@@ -15,15 +15,15 @@ struct MedioApp: App {
                 .sheet(isPresented: $showingUpdateSheet) {
                     MenuBarView(updater: updater)
                 }
-                .onAppear {
-                    // Check for updates when app launches
-                    updater.checkForUpdates()
-                    
-                    // Set up observer for update availability
-                    updater.onUpdateAvailable = {
-                        showingUpdateSheet = true
-                    }
-                }
+//                .onAppear {
+//                    // Check for updates when app launches
+//                    updater.checkForUpdates()
+//                    
+//                    // Set up observer for update availability
+//                    updater.onUpdateAvailable = {
+//                        showingUpdateSheet = true
+//                    }
+//                }
         }
         .windowStyle(HiddenTitleBarWindowStyle())
         .commands {
