@@ -1,0 +1,13 @@
+//
+//  LocalSigning.xcconfig
+//  Medio
+//
+//  Configuration for local development signing
+//
+
+// Sign to run locally only (no provisioning profile required)
+CODE_SIGN_STYLE = Manual
+CODE_SIGN_IDENTITY = -
+
+// Remove team requirement for local builds
+DEVELOPMENT_TEAM =
