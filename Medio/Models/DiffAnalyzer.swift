@@ -1,5 +1,4 @@
 import Foundation
-import Differ
 
 final class DiffAnalyzer {
     private let sourceText: String
@@ -30,21 +29,26 @@ final class DiffAnalyzer {
         let sourceLinesText = sourceLines.map { $0.text }
         let targetLinesText = targetLines.map { $0.text }
         
-        // Use extended diff to catch moves as well
-        let patches = extendedPatch(from: sourceLinesText, to: targetLinesText)
+        // Use Swift's built-in difference to compute changes
+        let differences = targetLinesText.difference(from: sourceLinesText)
         var lineDiffs: [LineDiff] = []
         var processedIndices = Set<Int>()
+        var removedIndices = Set<Int>()
+        
+        // Collect removed indices from the diff
+        for change in differences {
+            if case .remove(let offset, _, _) = change {
+                removedIndices.insert(offset)
+            }
+        }
         
         for (sourceIdx, sourceLine) in sourceLines.enumerated() {
             if processedIndices.contains(sourceIdx) { continue }
             
             let diff: LineDiff
             
-            // Check if this line is part of a patch
-            if let patch = patches.first(where: {
-                if case .deletion(let at) = $0 { return at == sourceIdx }
-                return false
-            }) {
+            // Check if this line was removed/changed
+            if removedIndices.contains(sourceIdx) {
                 // Find the best matching target line
                 if let (targetLine, similarity) = findBestMatch(
                     sourceLine: sourceLine.text,
@@ -67,7 +71,7 @@ final class DiffAnalyzer {
                     )
                 }
             } else {
-                // Line wasn't part of any patch - check if it's unchanged
+                // Line wasn't removed - check if it's unchanged
                 if targetLinesText.contains(sourceLine.text) {
                     diff = LineDiff(
                         range: sourceLine.range,
@@ -171,9 +175,12 @@ final class DiffAnalyzer {
         let source = sourceTokens.filter { $0.type != .whitespace }.map { $0.normalized }
         let target = targetTokens.filter { $0.type != .whitespace }.map { $0.normalized }
         
-        let patches = patch(from: source, to: target)
-        let changes = patches.count
+        // Use Swift's built-in difference to compute changes
+        let differences = target.difference(from: source)
+        let changes = differences.insertions.count + differences.removals.count
         let maxLength = Double(max(source.count, target.count))
+        
+        guard maxLength > 0 else { return 1.0 }
         
         return 1.0 - (Double(changes) / maxLength)
     }
@@ -338,10 +345,15 @@ final class DiffAnalyzer {
             let sourceTokens = tokenize(sourceLine.text)
             let targetTokens = tokenize(targetLine)
             
-            // Build target token set with emoji handling
-            var targetSet = Set(targetTokens.map { $0.normalized })
-            let targetEmojiSet = Set(targetTokens.filter { $0.type == .emoji }.map { $0.text })
+            // Build target token frequency map
+            var targetFrequency: [String: Int] = [:]
+            for token in targetTokens where token.type != .whitespace {
+                let key = token.type == .emoji ? token.text : token.normalized
+                targetFrequency[key, default: 0] += 1
+            }
             
+            // Track how many times we've used each token
+            var usedFrequency: [String: Int] = [:]
             var currentLocation = sourceLine.range.location
             var wordDiffs: [WordDiff] = []
             var processedLocations = Set<Int>()
@@ -354,20 +366,20 @@ final class DiffAnalyzer {
                     var shouldMark = false
                     
                     switch token.type {
-                    case .word:
-                        shouldMark = !targetSet.contains(token.normalized)
-                    case .emoji:
-                        shouldMark = !targetEmojiSet.contains(token.text)
-                    case .punctuation:
-                        // Only mark punctuation if it's meaningful
-                        if !token.text.trimmingCharacters(in: .whitespaces).isEmpty {
-                            shouldMark = !targetSet.contains(token.text)
-                        }
                     case .whitespace:
-                        // Skip whitespace
+                        break
+                    case .punctuation where token.text.trimmingCharacters(in: .whitespaces).isEmpty:
                         break
                     default:
-                        shouldMark = !targetSet.contains(token.normalized)
+                        let key = token.type == .emoji ? token.text : token.normalized
+                        let usedCount = usedFrequency[key, default: 0]
+                        let targetCount = targetFrequency[key, default: 0]
+                        
+                        if usedCount >= targetCount {
+                            shouldMark = true
+                        } else {
+                            usedFrequency[key, default: 0] += 1
+                        }
                     }
                     
                     if shouldMark {
@@ -463,7 +475,6 @@ extension DiffAnalyzer {
             appendCurrentToken()
             return tokens
         }
-    }
     
     private func tokenizeText(_ text: String) -> [Token] {
         var tokens: [Token] = []
@@ -539,4 +550,21 @@ extension DiffAnalyzer {
             return text
         }
     }
+}
 
+// MARK: - CollectionDifference Extensions
+extension CollectionDifference {
+    var insertions: [Change] {
+        compactMap {
+            if case .insert = $0 { return $0 }
+            return nil
+        }
+    }
+    
+    var removals: [Change] {
+        compactMap {
+            if case .remove = $0 { return $0 }
+            return nil
+        }
+    }
+}
