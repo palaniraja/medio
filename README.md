@@ -1,55 +1,13 @@
-# Medio - A Free MacOS Diff Checker
-
-![image](https://github.com/user-attachments/assets/bf2e4860-d209-4c17-b74b-592dec01ed5e)
-
-A fast, native and free macOS text comparison tool with real-time diff highlighting and a minimal interface.
-
-Because the world really needed another diff checker.
-
-## Features
-
-- **Real-time Comparison**: See differences instantly as you type
-- **Smart Diff Detection**: Intelligent word-level difference highlighting
-- **Dark and Light modes**: Of course
-- **Native Performance**: Built with SwiftUI and AppKit for optimal performance
-
-![42115](https://github.com/user-attachments/assets/d4a202c5-a160-4a66-a7c7-dad346de86a3)
-
-UPDATE: from v3.0.0 onwards Medio is using the [Differ](https://github.com/tonyarnold/Differ) Swift package
-
-## 💻 Get it
-
-You can find the .app here:
-[mediano.vercel.app](https://mediano.vercel.app)
-
-Or download from the [releases](https://github.com/nuance-dev/Medio/releases) page.
-
-This is a designer's first Swift app so it's probably really buggy, feel free to [report](https://github.com/nuance-dev/Medio/issues) any bugs found and I'll do my best to fix them.
-
-## 🥑 Fun facts?
-
-- First version was made within a day by Claude Sonnet 3.5
-
-- Medio was actually used to develop itself
-
-![72366](https://github.com/user-attachments/assets/d31f9a8f-d76f-446b-bba7-c3ffdf29660e)
+# Medio - proofread diff
 
 
-## 🤝 Contributing
+Repurposing [Medio](https://github.com/nuance-dev/Medio) as a proof read diff viewer
 
-We welcome contributions! Here's how you can help:
 
-1. Clone the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+![proofread1](assets/proofread1.png)
 
-Please ensure your PR:
+![proofread2](assets/proofread2.png)
 
-- Follows the existing code style
-- Includes appropriate tests
-- Updates documentation as needed
 
 ## 📝 License
 
